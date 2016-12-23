@@ -1,0 +1,28 @@
+create table tube.segments as WITH
+    dumps AS (
+      SELECT gid, ST_DumpPoints(geom) AS pt FROM tube.lines2
+    ),
+    pts AS (
+      SELECT gid, (pt).geom, (pt).path[1] AS vert FROM dumps
+    )
+    SELECT a.gid, ST_AsText(ST_MakeLine(ARRAY[a.geom, b.geom])) AS geom
+    FROM pts a, pts b
+    WHERE a.gid = b.gid AND a.vert = b.vert-1 AND b.vert > 1;
+
+alter table tube.segments rename geom to geomtext
+
+alter table tube.segments add column geom geometry(Linestring, 102013)
+
+update tube.segments set geom = ST_SetSRID(ST_GeomFromText(geomtext),102013);
+
+alter table tube.segments add column azimuth float;
+
+update tube.segments set azimuth = degrees(ST_Azimuth(ST_StartPoint(geom), ST_EndPoint(geom)));
+
+create sequence segment_id_seq;
+alter table tube.segments add column id integer unique default nextval('segment_id_seq');
+
+Create table tube.linefromsegment (id int, routename text, geom geometry(Linestring, 102013));
+
+insert into tube.linefromsegment values (1, 'Soton Pilotage W', (SELECT ST_SetSRID(ST_MakeLine(geom),102013) As newgeom
+    FROM tube.segment_pnts));

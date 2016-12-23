@@ -1,0 +1,77 @@
+create table tube.bbox2 as SELECT ST_Extent(geom) as bbox FROM tube.route2;
+
+create table tube.bbox3 as SELECT ST_SetSRID(ST_Envelope(geom),102013) as geom FROM tube.route2;
+
+create table tube.route2 (like tube.route)
+
+insert into tube.route2 select * from tube.route;
+
+ALTER TABLE tube.route2
+   ALTER COLUMN geom
+   TYPE Geometry(Point, 102013)
+   USING ST_Transform(geom, 102013);
+
+
+Select Find_SRID('tube','route2','geom')
+
+SELECT ST_X((ST_DumpPoints(geom)).geom), ST_Y((ST_DumpPoints(geom)).geom) from tube.route;
+
+create table tube.snapped3 as SELECT ST_SnapToGrid(geom, -792989, 2344199, 1000, 1000) from tube.route2;
+
+
+create table tube.fishnet3 as select * from ST_SetSRID(st_createfishnet(11,19,1000,1000,-792989,2344199),102013);
+
+create table tube.fishnet4 (like tube.fishnet3)
+
+create table tube.routeline4 as select id, routename, ST_SetSRID(ST_Transform(geom, 2213),2213) as geom from tube.routeline where id = 1;
+
+COPY tube.route FROM 'c:/Paul/MyProjects/AutoTubeMap/route1.txt' DELIMITER ',' CSV;
+
+ALTER TABLE tube.route ADD COLUMN geom geometry(POINT,4326);
+
+ALTER TABLE tube.route ADD COLUMN routename text;
+
+UPDATE tube.route SET geom = ST_SetSRID(ST_MakePoint(lon,lat),4326);
+
+UPDATE tube.route SET routename = 'Soton Pilotage W';
+
+SELECT routename, ST_MakeLine(points.geom) As newgeom
+    FROM tube.route As points
+    GROUP BY routename;
+
+Create table tube.routeline (id int, routename text, geom geometry(Linestring, 4326));
+
+insert into tube.routeline values (1, 'Soton Pilotage W', (SELECT ST_SetSRID(ST_MakeLine(points.geom),4326) As newgeom
+    FROM tube.route AS points
+    GROUP BY routename));
+
+SELECT Find_SRID('tube','routeline2','geom');
+
+SELECT ST_X((ST_DumpPoints(geom)).geom), ST_Y((ST_DumpPoints(geom)).geom) from tube.routeline2 where id = 1;
+
+SELECT ST_SnapToGrid(geom), 500) from tube.;
+
+create table tube.testline (id int, geom geometry);
+
+insert into tube.testline values (1, ST_GeomFromText('LINESTRING(0 0, 0 1, 1 1)'));
+
+select ST_DumpPoints(ST_AsText(geom)) from tube.testline where id = 1;
+
+SELECT
+    ST_AsText((line.a).geom)
+FROM ( SELECT
+    ST_DumpPoints(ST_AsText(geom)) as a from tube.testline where id = 1
+    ) as line;
+
+SELECT ST_X((ST_DumpPoints(geom)).geom), ST_Y((ST_DumpPoints(geom)).geom) from tube.routeline where id = 1;
+
+Create table tube.snappedroute2 (id int, routename text, geom geometry(Linestring, 102013));
+
+insert into tube.snappedroute2 values (1, 'Soton Pilotage W', (SELECT ST_SetSRID(ST_MakeLine(st_snaptogrid),102013) As newgeom
+    FROM tube.snapped3));
+
+create table tube.grid (id int, geom geometry);
+
+create sequence tube.grid_id;
+
+delete from tube.snappedroute2;
