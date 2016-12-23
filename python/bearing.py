@@ -1,16 +1,12 @@
-import geopy
-from geopy.distance import VincentyDistance
+from math import degrees, atan2
 
-lat1 = 50.884838252797664
-lon1 = 1.3033153909889132
-b = 270
-d = 2.81
 
-# given: lat1, lon1, b = bearing in degrees, d = distance in kilometers
+def gb(x, y, center_x, center_y):
+    angle = degrees(atan2(y - center_y, x - center_x))
+    bearing1 = (angle + 360) % 360
+    bearing2 = (90 - angle) % 360
+    print ("gb: x=%2d y=%2d angle=%6.1f bearing1=%5.1f bearing2=%5.1f" % (
+        x, y, angle, bearing1, bearing2))
 
-origin = geopy.Point(lat1, lon1)
-destination = VincentyDistance(kilometers=d).destination(origin, b)
-
-lat2, lon2 = destination.latitude, destination.longitude
-
-print(lat2, lon2)
+for pt in ((0, 1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1),(-1, 0),(-1,1)):
+    gb(pt[0], pt[1], 0, 0)
