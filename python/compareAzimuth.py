@@ -64,8 +64,9 @@ for pnt in sort_list:
     cur.execute(get_start_pnts)
 con.commit()
 
-end_pnt_idx = len(final_points)-1
-end_pnt = final_points[end_pnt_idx]
+end_pnt_idx = len(sort_list)-1
+end_pnt = sort_list[end_pnt_idx]
+print(end_pnt)
 
 insert_end_pnt = "INSERT INTO tube.route_soton_e_segment_pnts VALUES ({0}, (SELECT ST_EndPoint(geom) from tube.segments_soton_e where gid = {0}));".format(end_pnt)
 cur.execute(insert_end_pnt)
